@@ -20,3 +20,9 @@ strains (`LABEL` set) and non-complex species.
 is much smaller than the within-species cores and the complex MST resolves less. No recombination filtering.
 Identical genomes are collapsed into one node (area = genome count); edge labels are SNP differences.
 Nodes are labelled with `PROBENNUMMER` (up to 3 per node); `output/mst/mst_nodes_<subset>.tsv` lists every sample per node.
+
+**Node merging:** MST edges of at most N SNPs are contracted (single linkage), so crowded centres become fewer, larger
+nodes (area = genome count, label shows `(n=...)`). Defaults in `scripts/common.py` (`MERGE_SNPS`): complex 50, kansasii 50,
+pseudokansasii 20, persicum 100, chosen where the many short MST edges end (e.g. kansasii 117 haplotypes -> 74 nodes at 50).
+Override with `python scripts/03_mst_figures.py --merge N` (`--merge 0` = identical genomes only). `mst_nodes_<subset>.tsv`
+has `max_internal_snps`, the largest pairwise distance inside each node (single linkage can chain).
