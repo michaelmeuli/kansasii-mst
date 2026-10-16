@@ -14,6 +14,7 @@ import numpy as np
 import pandas as pd
 from adjustText import adjust_text
 from matplotlib.lines import Line2D
+from matplotlib.patches import Rectangle
 from scipy.sparse import csr_matrix
 from scipy.sparse.csgraph import connected_components, minimum_spanning_tree
 
@@ -25,6 +26,17 @@ ap = argparse.ArgumentParser()
 ap.add_argument("--merge", type=int, default=None, help="merge nodes joined by MST edges of <= N SNPs (default: per subset)")
 ap.add_argument("--subset", choices=list(SUBSETS), default=None, help="only this subset (default: all)")
 args = ap.parse_args()
+
+
+def node_area(n: int) -> float:
+    """Marker area (pt^2) of a node: proportional to its genome count, nothing else (not to edges or degree)."""
+    return 150.0 * n
+
+
+def sample_number(sample: str) -> int:
+    return int(sample.rsplit("-", 1)[1])  # Mkan329-001 -> 1
+
+
 samples = pd.read_csv(OUT / "samples_used.tsv", sep="\t").set_index("sample")
 
 for name in [args.subset] if args.subset else SUBSETS:
@@ -77,12 +89,18 @@ for name in [args.subset] if args.subset else SUBSETS:
     nx.draw_networkx_edges(G, pos, ax=ax, edge_color="#888888", width=1.0)
     species_nodes = sorted({d["species"] for _, d in G.nodes(data=True)})
     nodes = nx.draw_networkx_nodes(G, pos, ax=ax, node_color=[SPECIES_COLORS.get(G.nodes[v]["species"], "#999999") for v in G],
-                           node_size=[min(60 + 90 * G.nodes[v]["n"], 4000) for v in G], edgecolors="black", linewidths=0.6)
+                           node_size=[node_area(G.nodes[v]["n"]) for v in G], edgecolors="black", linewidths=0.6)
     def node_label(g: list[str]) -> str:
-        return "\n".join(g[:3]) + (f"\n+{len(g) - 3} more" if len(g) > 3 else "") + (f" (n={len(g)})" if len(g) > 1 else "")
+        nums = [str(x) for x in sorted(sample_number(n) for n in g)]
+        shown = nums[:8]
+        lines = [", ".join(shown[i:i + 3]) for i in range(0, len(shown), 3)]
+        if len(nums) > 8:
+            lines.append(f"+{len(nums) - 8} more")
+        return "\n".join(lines + ([f"(n={len(g)})"] if len(g) > 1 else []))
     pd.DataFrame({"node": range(k), "n": [len(g) for g in groups],
                   "species": [G.nodes[i]["species"] for i in range(k)],
                   "max_internal_snps": [int(D.loc[g, g].to_numpy().max()) for g in groups],
+                  "numbers": [",".join(str(x) for x in sorted(sample_number(n) for n in g)) for g in groups],
                   "samples": [",".join(g) for g in groups]}).to_csv(OUT / f"mst_nodes_{name}.tsv", sep="\t", index=False)
     thr = 0 if k <= 60 else float(np.percentile([d["weight"] for *_, d in G.edges(data=True)], 75))
     edge_txt = nx.draw_networkx_edge_labels(G, pos, ax=ax, font_size=5, rotate=False, bbox={"alpha": 0, "pad": 0},
@@ -94,7 +112,7 @@ for name in [args.subset] if args.subset else SUBSETS:
     fig.canvas.draw()  # transforms are only final after a draw
     texts = []
     for i, g in enumerate(groups):
-        r_px = np.sqrt(min(60 + 90 * G.nodes[i]["n"], 4000) / np.pi) * fig.dpi / 72
+        r_px = np.sqrt(node_area(G.nodes[i]["n"])) / 2 * fig.dpi / 72  # marker diameter = sqrt(area) pt
         cpx = ax.transData.transform(pos[i])
         # direction = middle of the widest angular gap between the node's tree neighbours (leaf: away from its parent)
         ang = np.sort([np.arctan2(*(ax.transData.transform(pos[j]) - cpx)[::-1]) for j in G[i]])
@@ -104,14 +122,25 @@ for name in [args.subset] if args.subset else SUBSETS:
         x, y = ax.transData.inverted().transform(cpx + vec * (r_px + 10 + 12 * max(G.degree(i) - 2, 0)))
         texts.append(ax.text(x, y, node_label(g), fontsize=5 if big else 6 if k > 30 else 7, ha="center", va="center",
                              bbox={"facecolor": "white", "alpha": 0.7, "pad": 0.3, "edgecolor": "none"}))
-    adjust_text(texts, x=[pos[i][0] for i in range(k)], y=[pos[i][1] for i in range(k)], objects=list(edge_txt.values()),
+    # invisible squares the size of each node so labels keep off the discs (scatter extents are NaN in adjustText)
+    node_boxes = []
+    for v in range(k):
+        half = np.sqrt(node_area(G.nodes[v]["n"])) / 2 * fig.dpi / 72
+        cx, cy = ax.transData.transform(pos[v])
+        (x0, y0), (x1, y1) = ax.transData.inverted().transform([(cx - half, cy - half), (cx + half, cy + half)])
+        node_boxes.append(ax.add_patch(Rectangle((x0, y0), x1 - x0, y1 - y0, fill=False, ec="none")))
+    adjust_text(texts, x=[pos[i][0] for i in range(k)], y=[pos[i][1] for i in range(k)], objects=[*node_boxes, *edge_txt.values()],
                 ax=ax, expand=(1.1, 1.3), force_text=(0.3, 0.6), force_static=(0.5, 0.8), iter_lim=1000,
                 arrowprops={"arrowstyle": "-", "color": "#777777", "lw": 0.4})
+    size_leg = ax.legend(handles=[Line2D([], [], marker="o", ls="", mfc="white", mec="black", markersize=float(np.sqrt(node_area(m))),
+                                         label=str(m)) for m in (1, 5, 10, 20) if m <= max(len(g) for g in groups) * 2],
+                         title="genomes", loc="upper left", bbox_to_anchor=(1.01, 0.82), frameon=False, labelspacing=1.2)
+    ax.add_artist(size_leg)
     ax.legend(handles=[Line2D([], [], marker="o", ls="", mfc=SPECIES_COLORS.get(sp, "#999999"), mec="black", label=sp)
-                       for sp in species_nodes], title="species", loc="best", frameon=False)
+                       for sp in species_nodes], title="species", loc="upper left", bbox_to_anchor=(1.01, 1.0), frameon=False)
     nvar = len(pd.read_csv(OUT / f"core_snp_sites_{name}.csv"))
-    ax.set_title(f"{TITLES[name]}: MST of core-genome SNPs\n{len(D)} genomes, {k} nodes (merged at <= {merge} SNPs), {nvar} variable core sites "
-                 f"(PE/PPE, IS, phage, repeats masked; edge labels = SNP differences)", fontsize=11)
+    ax.set_title(f"{TITLES[name]}: MST of core-genome SNPs\n{len(D)} genomes, {k} nodes (merged at <= {merge} SNPs), {nvar} variable core sites\n"
+                 f"PE/PPE, IS, phage and repeats masked; node labels = sample number (Mkan329-N); edge labels = SNP differences", fontsize=11)
     ax.axis("off")
     fig.tight_layout()
     for ext in ("png", "pdf"):

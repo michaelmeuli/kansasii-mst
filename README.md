@@ -24,7 +24,7 @@ strains (`LABEL` set) and non-complex species.
 **Core SNPs:** from the snippy alignments to NC_022663.1; core = ACGT in every genome of the subset, so the complex-wide core
 is much smaller than the within-species cores and the complex MST resolves less. No recombination filtering.
 Identical genomes are collapsed into one node (area = genome count); edge labels are SNP differences.
-Nodes are labelled with `PROBENNUMMER` (up to 3 per node); `output/mst/mst_nodes_<subset>.tsv` lists every sample per node.
+Nodes are labelled with the sample number only (`Mkan329-001` -> `1`; up to 8 per node, then `+k more`). Node area is strictly proportional to the number of genomes in the node (never to edges); a size legend shows the scale. `output/mst/mst_nodes_<subset>.tsv` lists every sample per node (full ids and numbers).
 
 **Node merging:** MST edges of at most N SNPs are contracted (single linkage), so crowded centres become fewer, larger
 nodes (area = genome count, label shows `(n=...)`). Defaults in `scripts/common.py` (`MERGE_SNPS`): complex 50, kansasii 50,
