@@ -1,0 +1,10 @@
+# Type-checking config only (analysis scripts, not a package).
+# Run: mypy   (from the repo root, in an env with mypy + pandas-stubs + scipy-stubs)
+[tool.mypy]
+strict = true
+python_version = "3.11"
+files = ["scripts"]
+
+[[tool.mypy.overrides]]
+module = ["networkx.*"]
+ignore_missing_imports = true

@@ -1,0 +1,45 @@
+"""Shared paths, QC exclusion and subset definitions."""
+from __future__ import annotations
+
+import os
+from pathlib import Path
+
+import pandas as pd
+
+ROOT = Path(os.environ.get("KANSASII_ROOT", "/shares/sander.imm.uzh/MM/kansasii"))
+OUT = ROOT / "output/mst"
+RES = ROOT / "runs/mkan329/assembly/results"
+REF_CHR = "NC_022663.1"  # chromosome of the snippy reference GCF_000157895.3
+
+COMPLEX = ["kansasii", "persicum", "pseudokansasii", "attenuatum", "innocens", "ostraviense"]
+# one MST per subset; None = every QC-passing complex member
+SUBSETS: dict[str, list[str] | None] = {
+    "complex": None,
+    "kansasii": ["kansasii"],
+    "pseudokansasii": ["pseudokansasii"],
+    "persicum": ["persicum"],
+}
+# same colours as mlsa-kansasii/mlsa/__init__.py
+SPECIES_COLORS = {
+    "kansasii": "#1b9e77", "persicum": "#d95f02", "pseudokansasii": "#7570b3", "innocens": "#e7298a",
+    "attenuatum": "#66a61e", "ostraviense": "#e6ab02", "gastri": "#a6761d",
+}
+# low-quality genomes missed by the contamination flag (also used in kansasii-gwas)
+EXTRA_EXCL = {10, 21}
+
+
+def alignment_path(sample: str) -> Path:
+    return RES / sample / "5_typing/kansasii_snippy/snippy_out/snps.aligned.fa"
+
+
+def load_samples() -> pd.DataFrame:
+    """All 186 genomes with columns sample, NR, species, keep (bool) and reason (why excluded, else '')."""
+    m = pd.read_csv(ROOT / "data/imm/screening_map_results.csv",
+                    usecols=["NR", "PROBENNUMMER", "LABEL", "species", "contamination_flag"])
+    reason = pd.Series("", index=m.index)
+    reason[~m.species.isin(COMPLEX)] = "not in complex"
+    reason[m.LABEL.notna() & (reason == "")] = "control strain"
+    reason[(m.contamination_flag == "contaminated") & (reason == "")] = "contaminated"
+    reason[m.NR.isin(EXTRA_EXCL) & (reason == "")] = "low quality (manual)"
+    return pd.DataFrame({"sample": m.PROBENNUMMER, "NR": m.NR, "species": m.species,
+                         "keep": reason == "", "reason": reason}).sort_values("NR").reset_index(drop=True)
