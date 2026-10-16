@@ -131,7 +131,30 @@ for name in [args.subset] if args.subset else SUBSETS:
         node_boxes.append(ax.add_patch(Rectangle((x0, y0), x1 - x0, y1 - y0, fill=False, ec="none")))
     adjust_text(texts, x=[pos[i][0] for i in range(k)], y=[pos[i][1] for i in range(k)], objects=[*node_boxes, *edge_txt.values()],
                 ax=ax, expand=(1.1, 1.3), force_text=(0.3, 0.6), force_static=(0.5, 0.8), iter_lim=1000,
-                arrowprops={"arrowstyle": "-", "color": "#777777", "lw": 0.4})
+                arrowprops={"arrowstyle": "-", "color": "#444444", "lw": 0.7})
+    # adjustText only softly avoids the node discs; push any label still touching a disc radially outward until it is clear
+    fig.canvas.draw()
+    centres = [np.asarray(ax.transData.transform(pos[v]), dtype=float) for v in range(k)]
+    radii = [float(np.sqrt(node_area(G.nodes[v]["n"])) / 2 * fig.dpi / 72) for v in range(k)]
+    inv = ax.transData.inverted()
+    for _ in range(60):
+        moved = False
+        for t in texts:
+            bb = t.get_window_extent()
+            for cen, rad in zip(centres, radii):
+                dx = cen[0] - min(max(cen[0], bb.x0), bb.x1)
+                dy = cen[1] - min(max(cen[1], bb.y0), bb.y1)
+                d = float(np.hypot(dx, dy))
+                if d < rad + 3:
+                    tc = np.array([(bb.x0 + bb.x1) / 2, (bb.y0 + bb.y1) / 2])
+                    vec = tc - cen
+                    norm = float(np.hypot(*vec))
+                    vec = vec / norm if norm > 1e-6 else np.array([0.0, -1.0])
+                    t.set_position(tuple(inv.transform(tc + vec * max(rad + 3 - d, 4.0))))
+                    moved = True
+                    break
+        if not moved:
+            break
     size_leg = ax.legend(handles=[Line2D([], [], marker="o", ls="", mfc="white", mec="black", markersize=float(np.sqrt(node_area(m))),
                                          label=str(m)) for m in (1, 5, 10, 20) if m <= max(len(g) for g in groups) * 2],
                          title="genomes", loc="upper left", bbox_to_anchor=(1.01, 0.82), frameon=False, labelspacing=1.2)
