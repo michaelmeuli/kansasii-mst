@@ -84,8 +84,8 @@ for name in [args.subset] if args.subset else SUBSETS:
     dist = dict(nx.all_pairs_dijkstra_path_length(Gs))
     pos = nx.kamada_kawai_layout(Gs, dist=dist)
 
-    big = k > 60
-    fig, ax = plt.subplots(figsize=(28, 23) if big else (11, 9) if k <= 30 else (16, 13))
+    big = len(D) > 150  # the complex figure only: bigger canvas for its crowded centre
+    fig, ax = plt.subplots(figsize=(24, 20) if big else (11, 9) if k <= 30 else (16, 13))
     nx.draw_networkx_edges(G, pos, ax=ax, edge_color="#888888", width=1.0)
     species_nodes = sorted({d["species"] for _, d in G.nodes(data=True)})
     nodes = nx.draw_networkx_nodes(G, pos, ax=ax, node_color=[SPECIES_COLORS.get(G.nodes[v]["species"], "#999999") for v in G],
@@ -120,7 +120,7 @@ for name in [args.subset] if args.subset else SUBSETS:
         a = ang[int(np.argmax(gaps))] + gaps.max() / 2
         vec = np.array([np.cos(a), np.sin(a)])
         x, y = ax.transData.inverted().transform(cpx + vec * (r_px + 10 + 12 * max(G.degree(i) - 2, 0)))
-        texts.append(ax.text(x, y, node_label(g), fontsize=6 if big else 6 if k > 30 else 7, ha="center", va="center",
+        texts.append(ax.text(x, y, node_label(g), fontsize=6 if k > 30 else 7, ha="center", va="center",
                              # lists of big nodes get a framed box in the node's colour, joined to the node by a leader line
                              bbox={"facecolor": "white", "alpha": 0.85 if len(g) >= 4 else 0.7, "pad": 1.5 if len(g) >= 4 else 0.3,
                                    "edgecolor": SPECIES_COLORS.get(G.nodes[i]["species"], "#999999") if len(g) >= 4 else "none"}))
@@ -132,8 +132,7 @@ for name in [args.subset] if args.subset else SUBSETS:
         (x0, y0), (x1, y1) = ax.transData.inverted().transform([(cx - half, cy - half), (cx + half, cy + half)])
         node_boxes.append(ax.add_patch(Rectangle((x0, y0), x1 - x0, y1 - y0, fill=False, ec="none")))
     adjust_text(texts, x=[pos[i][0] for i in range(k)], y=[pos[i][1] for i in range(k)], objects=[*node_boxes, *edge_txt.values()],
-                ax=ax, expand=(1.1, 1.3), force_text=(0.3, 0.6), force_static=(0.5, 0.8), iter_lim=1000,
-                arrowprops={"arrowstyle": "-", "color": "#444444", "lw": 0.8}, min_arrow_len=2)
+                ax=ax, expand=(1.1, 1.3), force_text=(0.3, 0.6), force_static=(0.5, 0.8), iter_lim=1000)
     # adjustText only softly avoids the node discs; push any label still touching a disc radially outward until it is clear
     fig.canvas.draw()
     centres = [np.asarray(ax.transData.transform(pos[v]), dtype=float) for v in range(k)]
@@ -157,6 +156,15 @@ for name in [args.subset] if args.subset else SUBSETS:
                     break
         if not moved:
             break
+    # leader lines: every label that is not touching its node is joined to the node edge by a line to the nearest point of the label
+    for t, cen, rad in zip(texts, centres, radii):
+        bb = t.get_window_extent()
+        nearest = np.array([min(max(cen[0], bb.x0), bb.x1), min(max(cen[1], bb.y0), bb.y1)])
+        gap = float(np.hypot(*(nearest - cen)))
+        if gap > rad + 18:  # only labels that are clearly detached from their node get a leader line
+            start = cen + (nearest - cen) / gap * rad
+            (x0, y0), (x1, y1) = inv.transform([tuple(start), tuple(nearest)])
+            ax.add_line(Line2D([x0, x1], [y0, y1], color="#444444", lw=0.9, ls=(0, (1.5, 1.5)), zorder=1.5))  # dotted, so it is not mistaken for a tree edge
     size_leg = ax.legend(handles=[Line2D([], [], marker="o", ls="", mfc="white", mec="black", markersize=float(np.sqrt(node_area(m))),
                                          label=str(m)) for m in (1, 5, 10, 20) if m <= max(len(g) for g in groups) * 2],
                          title="genomes", loc="upper left", bbox_to_anchor=(1.01, 0.82), frameon=False, labelspacing=1.2)
