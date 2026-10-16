@@ -27,7 +27,7 @@ SUBSETS: dict[str, list[str] | None] = {
 }
 # MST nodes joined by edges of <= N SNPs are merged into one node (03_mst_figures.py); N sits where the many short central
 # edges end (see README)
-MERGE_SNPS = {"complex": 50, "kansasii": 50, "pseudokansasii": 20, "persicum": 100}
+MERGE_SNPS = {"complex": 1000, "kansasii": 50, "pseudokansasii": 20, "persicum": 100}
 # same colours as mlsa-kansasii/mlsa/__init__.py
 SPECIES_COLORS = {
     "kansasii": "#1b9e77", "persicum": "#d95f02", "pseudokansasii": "#7570b3", "innocens": "#e7298a",

@@ -24,10 +24,10 @@ strains (`LABEL` set) and non-complex species.
 **Core SNPs:** from the snippy alignments to NC_022663.1; core = ACGT in every genome of the subset, so the complex-wide core
 is much smaller than the within-species cores and the complex MST resolves less. No recombination filtering.
 Identical genomes are collapsed into one node (area = genome count); edge labels are SNP differences.
-Nodes are labelled with the sample number only (`Mkan329-001` -> `1`; up to 8 per node, then `+k more`). Node area is strictly proportional to the number of genomes in the node (never to edges); a size legend shows the scale. `output/mst/mst_nodes_<subset>.tsv` lists every sample per node (full ids and numbers).
+Nodes are labelled with the sample number only (`Mkan329-001` -> `1`; up to 8 per node, then `+k more`). Node area depends only on the number of genomes in the node (never on edges) and grows as its square root, so big nodes stay moderate; a size legend shows the scale. Nodes of 4+ genomes have a framed list box joined to the node by a leader line. `output/mst/mst_nodes_<subset>.tsv` lists every sample per node (full ids and numbers).
 
 **Node merging:** MST edges of at most N SNPs are contracted (single linkage), so crowded centres become fewer, larger
-nodes (area = genome count, label shows `(n=...)`). Defaults in `scripts/common.py` (`MERGE_SNPS`): complex 50, kansasii 50,
+nodes (area = genome count, label shows `(n=...)`). Defaults in `scripts/common.py` (`MERGE_SNPS`): complex 1000 (coarse on purpose: the complex figure is for the overview; 172 genomes -> 75 nodes, persicum collapses to a few nodes), kansasii 50, kansasii 50,
 pseudokansasii 20, persicum 100, chosen where the many short MST edges end (e.g. kansasii 117 haplotypes -> 74 nodes at 50).
 Override with `python scripts/03_mst_figures.py --merge N` (`--merge 0` = identical genomes only). `mst_nodes_<subset>.tsv`
 has `max_internal_snps`, the largest pairwise distance inside each node (single linkage can chain).

@@ -29,8 +29,8 @@ args = ap.parse_args()
 
 
 def node_area(n: int) -> float:
-    """Marker area (pt^2) of a node: proportional to its genome count, nothing else (not to edges or degree)."""
-    return 150.0 * n
+    """Marker area (pt^2) of a node: grows with its genome count only (not edges or degree), as sqrt so big nodes stay moderate."""
+    return float(150.0 * np.sqrt(n))
 
 
 def sample_number(sample: str) -> int:
@@ -84,8 +84,8 @@ for name in [args.subset] if args.subset else SUBSETS:
     dist = dict(nx.all_pairs_dijkstra_path_length(Gs))
     pos = nx.kamada_kawai_layout(Gs, dist=dist)
 
-    big = k > 100
-    fig, ax = plt.subplots(figsize=(24, 20) if big else (11, 9) if k <= 30 else (16, 13))
+    big = k > 60
+    fig, ax = plt.subplots(figsize=(28, 23) if big else (11, 9) if k <= 30 else (16, 13))
     nx.draw_networkx_edges(G, pos, ax=ax, edge_color="#888888", width=1.0)
     species_nodes = sorted({d["species"] for _, d in G.nodes(data=True)})
     nodes = nx.draw_networkx_nodes(G, pos, ax=ax, node_color=[SPECIES_COLORS.get(G.nodes[v]["species"], "#999999") for v in G],
@@ -120,8 +120,10 @@ for name in [args.subset] if args.subset else SUBSETS:
         a = ang[int(np.argmax(gaps))] + gaps.max() / 2
         vec = np.array([np.cos(a), np.sin(a)])
         x, y = ax.transData.inverted().transform(cpx + vec * (r_px + 10 + 12 * max(G.degree(i) - 2, 0)))
-        texts.append(ax.text(x, y, node_label(g), fontsize=5 if big else 6 if k > 30 else 7, ha="center", va="center",
-                             bbox={"facecolor": "white", "alpha": 0.7, "pad": 0.3, "edgecolor": "none"}))
+        texts.append(ax.text(x, y, node_label(g), fontsize=6 if big else 6 if k > 30 else 7, ha="center", va="center",
+                             # lists of big nodes get a framed box in the node's colour, joined to the node by a leader line
+                             bbox={"facecolor": "white", "alpha": 0.85 if len(g) >= 4 else 0.7, "pad": 1.5 if len(g) >= 4 else 0.3,
+                                   "edgecolor": SPECIES_COLORS.get(G.nodes[i]["species"], "#999999") if len(g) >= 4 else "none"}))
     # invisible squares the size of each node so labels keep off the discs (scatter extents are NaN in adjustText)
     node_boxes = []
     for v in range(k):
@@ -131,7 +133,7 @@ for name in [args.subset] if args.subset else SUBSETS:
         node_boxes.append(ax.add_patch(Rectangle((x0, y0), x1 - x0, y1 - y0, fill=False, ec="none")))
     adjust_text(texts, x=[pos[i][0] for i in range(k)], y=[pos[i][1] for i in range(k)], objects=[*node_boxes, *edge_txt.values()],
                 ax=ax, expand=(1.1, 1.3), force_text=(0.3, 0.6), force_static=(0.5, 0.8), iter_lim=1000,
-                arrowprops={"arrowstyle": "-", "color": "#444444", "lw": 0.7})
+                arrowprops={"arrowstyle": "-", "color": "#444444", "lw": 0.8}, min_arrow_len=2)
     # adjustText only softly avoids the node discs; push any label still touching a disc radially outward until it is clear
     fig.canvas.draw()
     centres = [np.asarray(ax.transData.transform(pos[v]), dtype=float) for v in range(k)]
