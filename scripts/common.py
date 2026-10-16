@@ -9,6 +9,12 @@ import pandas as pd
 ROOT = Path(os.environ.get("KANSASII_ROOT", "/shares/sander.imm.uzh/MM/kansasii"))
 OUT = ROOT / "output/mst"
 RES = ROOT / "runs/mkan329/assembly/results"
+REF_DIR = ROOT / "data/gtdb_genomes/Mycobacteriaceae/ncbi_dataset/data/GCF_000157895.3"
+REF_FASTA = REF_DIR / "GCF_000157895.3_ASM15789v2_genomic.fna"
+REF_GFF = REF_DIR / "genomic.gff"
+MASK_DIR = OUT / "mask"
+MASK_BED = MASK_DIR / "mask.bed"  # PE/PPE + IS + phage + self-repeats, merged (00_build_mask_bed.py)
+SNIPPY_BIN = Path.home() / "data/conda/envs/snippy/bin"  # bedtools, minimap2
 REF_CHR = "NC_022663.1"  # chromosome of the snippy reference GCF_000157895.3
 
 COMPLEX = ["kansasii", "persicum", "pseudokansasii", "attenuatum", "innocens", "ostraviense"]

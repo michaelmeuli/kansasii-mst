@@ -111,7 +111,7 @@ for name in [args.subset] if args.subset else SUBSETS:
                        for sp in species_nodes], title="species", loc="best", frameon=False)
     nvar = len(pd.read_csv(OUT / f"core_snp_sites_{name}.csv"))
     ax.set_title(f"{TITLES[name]}: MST of core-genome SNPs\n{len(D)} genomes, {k} nodes (merged at <= {merge} SNPs), {nvar} variable core sites "
-                 f"(edge labels = SNP differences)", fontsize=11)
+                 f"(PE/PPE, IS, phage, repeats masked; edge labels = SNP differences)", fontsize=11)
     ax.axis("off")
     fig.tight_layout()
     for ext in ("png", "pdf"):
