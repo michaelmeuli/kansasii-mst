@@ -4,7 +4,7 @@ Minimum spanning tree (MST) figures from core-genome SNPs, for four sample sets:
 the whole *M. kansasii* complex, *M. kansasii* sensu stricto, *M. pseudokansasii* and *M. persicum*.
 
 ```bash
-sbatch run_all.sbatch      # scripts/01 .. 03, about minutes
+sbatch run_all.sbatch      # scripts/00 .. 03, about 2 minutes (outputs: $KANSASII_ROOT/output/mst/)
 ```
 
 | Script | Does |
@@ -12,7 +12,11 @@ sbatch run_all.sbatch      # scripts/01 .. 03, about minutes
 | `00_build_mask_bed.py` | mask BED: PE/PPE, IS, phage genes (reference GFF product names) + self-repeats -> `output/mst/mask/mask.bed` |
 | `01_select_samples.py` | QC exclusion, subset membership -> `output/mst/samples_used.tsv` |
 | `02_core_snp_matrices.py` | per-subset core SNPs and Hamming distance matrices |
-| `03_mst_figures.py` | MST (scipy) drawn with networkx -> `output/mst/mst_<subset>.{png,pdf}` |
+| `03_mst_figures.py` | MST (scipy) drawn with networkx, labels repelled with adjustText (`--subset`, `--merge N`) -> `output/mst/mst_<subset>.{png,pdf}` |
+
+**Environment:** `environment.yml` (`env_mst`: pandas, numpy, scipy, matplotlib, networkx, adjusttext). Script 00 also needs
+`bedtools` and `minimap2`, taken from the `snippy` conda env (`SNIPPY_BIN` in `scripts/common.py`). Type check:
+`~/data/conda/envs/env_typecheck/bin/mypy`. Run heavy steps with `sbatch`, not on the login node.
 
 **Excluded:** genomes flagged `contaminated` in `screening_map_results.csv`, NR 10 and 21 (as in kansasii-gwas), control
 strains (`LABEL` set) and non-complex species.
