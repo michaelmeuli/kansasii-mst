@@ -50,13 +50,23 @@ for name in SUBSETS:
     dist = dict(nx.all_pairs_dijkstra_path_length(Gs))
     pos = nx.kamada_kawai_layout(Gs, dist=dist)
 
-    fig, ax = plt.subplots(figsize=(11, 9))
+    big = k > 100
+    fig, ax = plt.subplots(figsize=(24, 20) if big else (11, 9) if k <= 30 else (16, 13))
     nx.draw_networkx_edges(G, pos, ax=ax, edge_color="#888888", width=1.0)
     species_nodes = sorted({d["species"] for _, d in G.nodes(data=True)})
     nx.draw_networkx_nodes(G, pos, ax=ax, node_color=[SPECIES_COLORS.get(G.nodes[v]["species"], "#999999") for v in G],
                            node_size=[60 + 70 * G.nodes[v]["n"] for v in G], edgecolors="black", linewidths=0.6)
+    def node_label(g: list[str]) -> str:
+        return "\n".join(g[:3]) + (f"\n+{len(g) - 3} more" if len(g) > 3 else "")
+    lpos = {v: (x, y - 0.025) for v, (x, y) in pos.items()}
+    nx.draw_networkx_labels(G, lpos, ax=ax, labels={i: node_label(g) for i, g in enumerate(groups)},
+                            font_size=5 if big else 6 if k > 30 else 7, verticalalignment="top",
+                            bbox={"facecolor": "white", "alpha": 0.6, "pad": 0.3, "edgecolor": "none"})
+    pd.DataFrame({"node": range(k), "n": [len(g) for g in groups],
+                  "species": [G.nodes[i]["species"] for i in range(k)],
+                  "samples": [",".join(g) for g in groups]}).to_csv(OUT / f"mst_nodes_{name}.tsv", sep="\t", index=False)
     thr = 0 if k <= 60 else float(np.percentile([d["weight"] for *_, d in G.edges(data=True)], 75))
-    nx.draw_networkx_edge_labels(G, pos, ax=ax, font_size=6, rotate=False, bbox={"alpha": 0, "pad": 0},
+    nx.draw_networkx_edge_labels(G, pos, ax=ax, font_size=5, rotate=False, bbox={"alpha": 0, "pad": 0},
                                  edge_labels={(u, v): f"{int(d['weight'])}" for u, v, d in G.edges(data=True)
                                               if d["weight"] > thr})
     ax.legend(handles=[Line2D([], [], marker="o", ls="", mfc=SPECIES_COLORS.get(sp, "#999999"), mec="black", label=sp)

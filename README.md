@@ -19,3 +19,4 @@ strains (`LABEL` set) and non-complex species.
 **Core SNPs:** from the snippy alignments to NC_022663.1; core = ACGT in every genome of the subset, so the complex-wide core
 is much smaller than the within-species cores and the complex MST resolves less. No recombination filtering.
 Identical genomes are collapsed into one node (area = genome count); edge labels are SNP differences.
+Nodes are labelled with `PROBENNUMMER` (up to 3 per node); `output/mst/mst_nodes_<subset>.tsv` lists every sample per node.
