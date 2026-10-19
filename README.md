@@ -40,3 +40,8 @@ Masked on the reference GCF_000157895.3: PE/PPE genes 254 CDS (384 kb), IS/trans
 chromosome). Effect on variable core sites: complex 260,020 -> 254,643, kansasii 222,680 -> 210,259, pseudokansasii 373 -> 338,
 persicum 31,630 -> 29,826 (`output/mst/core_snp_summary.tsv`). Node-merge thresholds were re-checked and kept.
 Phage regions are annotation-based (no PHASTER/PhiSpy available), so unannotated prophage is not masked.
+
+## Provenance
+
+The sbatch files write `MANIFEST.txt` (commit, clean/dirty flag, script, conda env hash, inputs) into the output
+directory when they finish; see `kansasii-docs/docs/PROVENANCE.md`. Project index: `kansasii-docs/README.md`.
