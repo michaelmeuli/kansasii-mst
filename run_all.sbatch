@@ -3,7 +3,7 @@
 #SBATCH --cpus-per-task=2
 #SBATCH --mem=16G
 #SBATCH --time=02:00:00
-#SBATCH --output=%x-%j.log
+#SBATCH --output=/shares/sander.imm.uzh/MM/kansasii/output/mst/logs/%x-%j.log
 # Core-SNP minimum spanning tree figures: scripts/00 .. 03 (00 builds the PE/PPE+IS+phage+repeat mask BED) in numeric order.
 #
 #   sbatch run_all.sbatch
