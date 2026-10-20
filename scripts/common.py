@@ -33,8 +33,6 @@ SPECIES_COLORS = {
     "kansasii": "#1b9e77", "persicum": "#d95f02", "pseudokansasii": "#7570b3", "innocens": "#e7298a",
     "attenuatum": "#66a61e", "ostraviense": "#e6ab02", "gastri": "#a6761d",
 }
-# low-quality genomes missed by the contamination flag (also used in kansasii-gwas)
-EXTRA_EXCL = {10, 21}
 
 
 def alignment_path(sample: str) -> Path:
@@ -49,6 +47,5 @@ def load_samples() -> pd.DataFrame:
     reason[~m.species.isin(COMPLEX)] = "not in complex"
     reason[m.LABEL.notna() & (reason == "")] = "control strain"
     reason[(m.contamination_flag == "contaminated") & (reason == "")] = "contaminated"
-    reason[m.NR.isin(EXTRA_EXCL) & (reason == "")] = "low quality (manual)"
     return pd.DataFrame({"sample": m.PROBENNUMMER, "NR": m.NR, "species": m.species,
                          "keep": reason == "", "reason": reason}).sort_values("NR").reset_index(drop=True)
