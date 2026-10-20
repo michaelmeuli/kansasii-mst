@@ -3,7 +3,7 @@
 Core-SNP minimum spanning trees of the M. kansasii complex (all complex, kansasii, pseudokansasii, persicum).
 Only what is easy to get wrong:
 
-- QC exclusions live in `scripts/common.py` (`load_samples`): contaminated flag (CheckM > 10 %, the only contamination rule in all repos), controls, non-complex species. No manual per-isolate exclusions.
+- QC exclusions live in `scripts/common.py` (`load_samples`): contaminated flag (CheckM > 5 %, the only contamination rule in all repos), controls, non-complex species. No manual per-isolate exclusions.
 - Core is computed **per subset** from `snps.aligned.fa`, not from the complex-wide snippy-core alignment.
 - Masking: `00_build_mask_bed.py` builds `output/mst/mask/mask.bed` (PE/PPE, IS, phage by GFF product regex + minimap2 self-repeats); snippy has no `--mask`, so it is applied in `02` (`--no-mask` to disable). Rerun 00-03 after changing it.
 - Node merging threshold `MERGE_SNPS` (common.py) was tuned on the MST edge-weight distribution; recheck if the mask or QC set changes.
