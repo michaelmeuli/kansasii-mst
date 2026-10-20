@@ -91,7 +91,7 @@ for name in [args.subset] if args.subset else SUBSETS:
     nodes = nx.draw_networkx_nodes(G, pos, ax=ax, node_color=[SPECIES_COLORS.get(G.nodes[v]["species"], "#999999") for v in G],
                            node_size=[node_area(G.nodes[v]["n"]) for v in G], edgecolors="black", linewidths=0.6)
     def node_label(g: list[str]) -> str:
-        nums = [str(x) for x in sorted(sample_number(n) for n in g)]
+        nums = [f"M{x:03d}" for x in sorted(sample_number(n) for n in g)]
         shown = nums[:8]
         lines = [", ".join(shown[i:i + 3]) for i in range(0, len(shown), 3)]
         if len(nums) > 8:
@@ -173,7 +173,7 @@ for name in [args.subset] if args.subset else SUBSETS:
                        for sp in species_nodes], title="species", loc="upper left", bbox_to_anchor=(1.01, 1.0), frameon=False)
     nvar = len(pd.read_csv(OUT / f"core_snp_sites_{name}.csv"))
     ax.set_title(f"{TITLES[name]}: MST of core-genome SNPs\n{len(D)} genomes, {k} nodes (merged at <= {merge} SNPs), {nvar} variable core sites\n"
-                 f"PE/PPE, IS, phage and repeats masked; node labels = sample number (Mkan329-N); edge labels = SNP differences", fontsize=11)
+                 f"PE/PPE, IS, phage and repeats masked; node labels = sample ID (MNNN); edge labels = SNP differences", fontsize=11)
     ax.axis("off")
     fig.tight_layout()
     for ext in ("png", "pdf"):
