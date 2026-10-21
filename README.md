@@ -18,7 +18,7 @@ sbatch run_all.sbatch      # scripts/00 .. 03, about 2 minutes (outputs: $KANSAS
 `bedtools` and `minimap2`, taken from the `snippy` conda env (`SNIPPY_BIN` in `scripts/common.py`). Type check:
 `~/data/conda/envs/env_typecheck/bin/mypy`. Run heavy steps with `sbatch`, not on the login node.
 
-**Excluded:** genomes flagged `contaminated` in `screening_map_results.csv` (CheckM contamination above 5 %; the same flag in every repo), control
+**Excluded:** genomes with `excluded` = true in `screening_map_results.csv` (CheckM contamination above 5 % or < 90 % of the cgMLST loci called; the same column in every repo), control
 strains (`LABEL` set) and non-complex species.
 
 **Core SNPs:** from the snippy alignments to NC_022663.1; core = ACGT in every genome of the subset, so the complex-wide core

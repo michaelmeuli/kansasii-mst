@@ -41,11 +41,13 @@ def alignment_path(sample: str) -> Path:
 
 def load_samples() -> pd.DataFrame:
     """All 186 genomes with columns sample, NR, species, keep (bool) and reason (why excluded, else '')."""
-    m = pd.read_csv(ROOT / "data/imm/screening_map_results.csv",
-                    usecols=["NR", "PROBENNUMMER", "LABEL", "species", "contamination_flag"])
+    m = pd.read_csv(ROOT / "data/imm/screening_map_results.csv", dtype={"excluded": str},
+                    usecols=["NR", "PROBENNUMMER", "LABEL", "species", "contamination_flag", "excluded"])
     reason = pd.Series("", index=m.index)
     reason[~m.species.isin(COMPLEX)] = "not in complex"
     reason[m.LABEL.notna() & (reason == "")] = "control strain"
     reason[(m.contamination_flag == "contaminated") & (reason == "")] = "contaminated"
+    # `excluded` = contaminated or < 90 % of the cgMLST loci called (immensekansasii 06)
+    reason[(m.excluded.str.lower() == "true") & (reason == "")] = "low cgMLST coverage"
     return pd.DataFrame({"sample": m.PROBENNUMMER, "NR": m.NR, "species": m.species,
                          "keep": reason == "", "reason": reason}).sort_values("NR").reset_index(drop=True)
