@@ -18,7 +18,8 @@ from matplotlib.patches import Rectangle
 from scipy.sparse import csr_matrix
 from scipy.sparse.csgraph import connected_components, minimum_spanning_tree
 
-from common import MERGE_SNPS, OUT, SPECIES_COLORS, SUBSETS
+from common import MERGE_SNPS, OUTPUT, SUBSETS
+from kansasii_paths import SPECIES_COLORS
 
 TITLES = {"complex": "M. kansasii complex", "kansasii": "M. kansasii (sensu stricto)",
           "pseudokansasii": "M. pseudokansasii", "persicum": "M. persicum"}
@@ -37,10 +38,10 @@ def sample_number(sample: str) -> int:
     return int(sample.rsplit("-", 1)[1])  # Mkan329-001 -> 1
 
 
-samples = pd.read_csv(OUT / "samples_used.tsv", sep="\t").set_index("sample")
+samples = pd.read_csv(OUTPUT / "samples_used.tsv", sep="\t").set_index("sample")
 
 for name in [args.subset] if args.subset else SUBSETS:
-    D = pd.read_csv(OUT / f"core_snp_distance_{name}.csv", index_col=0)
+    D = pd.read_csv(OUTPUT / f"core_snp_distance_{name}.csv", index_col=0)
     # collapse identical haplotypes (rows of the distance matrix equal <=> distance 0)
     hap: list[list[str]] = []
     for n in D.index:
@@ -101,7 +102,7 @@ for name in [args.subset] if args.subset else SUBSETS:
                   "species": [G.nodes[i]["species"] for i in range(k)],
                   "max_internal_snps": [int(D.loc[g, g].to_numpy().max()) for g in groups],
                   "numbers": [",".join(str(x) for x in sorted(sample_number(n) for n in g)) for g in groups],
-                  "samples": [",".join(g) for g in groups]}).to_csv(OUT / f"mst_nodes_{name}.tsv", sep="\t", index=False)
+                  "samples": [",".join(g) for g in groups]}).to_csv(OUTPUT / f"mst_nodes_{name}.tsv", sep="\t", index=False)
     thr = 0 if k <= 60 else float(np.percentile([d["weight"] for *_, d in G.edges(data=True)], 75))
     edge_txt = nx.draw_networkx_edge_labels(G, pos, ax=ax, font_size=5, rotate=False, bbox={"alpha": 0, "pad": 0},
                                  edge_labels={(u, v): f"{int(d['weight'])}" for u, v, d in G.edges(data=True)
@@ -171,12 +172,12 @@ for name in [args.subset] if args.subset else SUBSETS:
     ax.add_artist(size_leg)
     ax.legend(handles=[Line2D([], [], marker="o", ls="", mfc=SPECIES_COLORS.get(sp, "#999999"), mec="black", label=sp)
                        for sp in species_nodes], title="species", loc="upper left", bbox_to_anchor=(1.01, 1.0), frameon=False)
-    nvar = len(pd.read_csv(OUT / f"core_snp_sites_{name}.csv"))
+    nvar = len(pd.read_csv(OUTPUT / f"core_snp_sites_{name}.csv"))
     ax.set_title(f"{TITLES[name]}: MST of core-genome SNPs\n{len(D)} genomes, {k} nodes (merged at <= {merge} SNPs), {nvar} variable core sites\n"
                  f"PE/PPE, IS, phage and repeats masked; node labels = sample ID (MNNN); edge labels = SNP differences", fontsize=11)
     ax.axis("off")
     fig.tight_layout()
     for ext in ("png", "pdf"):
-        fig.savefig(OUT / f"mst_{name}.{ext}", dpi=200)
+        fig.savefig(OUTPUT / f"mst_{name}.{ext}", dpi=200)
     plt.close(fig)
     print(f"{name}: wrote mst_{name}.png/pdf ({len(D)} genomes, {len(hap)} haplotypes, {k} nodes at <= {merge} SNPs)")

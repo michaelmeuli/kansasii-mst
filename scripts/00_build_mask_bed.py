@@ -9,8 +9,10 @@ import os
 import re
 import subprocess
 from collections import defaultdict
+from pathlib import Path
 
-from common import MASK_BED, MASK_DIR, REF_FASTA, REF_GFF, SNIPPY_BIN
+from common import MASK_BED, MASK_DIR, SNIPPY_BIN
+from kansasii_paths import ATCC12478_FASTA, ATCC12478_GFF
 
 CLASSES = {
     "pe_ppe": re.compile(r"PPE|PE family|PE domain|PE-PGRS|PGRS"),
@@ -20,6 +22,8 @@ CLASSES = {
 NOT_PHAGE = re.compile(r"phage shock|phage resistance")  # stress-response genes, not prophage
 
 ap = argparse.ArgumentParser()
+ap.add_argument("--ref-fasta", type=Path, default=ATCC12478_FASTA, help="snippy reference genome")
+ap.add_argument("--ref-gff", type=Path, default=ATCC12478_GFF, help="its annotation")
 ap.add_argument("--pad", type=int, default=0, help="extend every annotated feature by this many bp on both sides")
 args = ap.parse_args()
 os.environ["PATH"] = f"{SNIPPY_BIN}:{os.environ['PATH']}"
@@ -27,7 +31,7 @@ MASK_DIR.mkdir(parents=True, exist_ok=True)
 
 lengths: dict[str, int] = {}
 name = ""
-for line in open(REF_FASTA, encoding="utf-8"):
+for line in open(args.ref_fasta, encoding="utf-8"):
     if line.startswith(">"):
         name = line[1:].split()[0]
         lengths[name] = 0
@@ -38,7 +42,7 @@ genome.write_text("".join(f"{k}\t{v}\n" for k, v in lengths.items()), encoding="
 
 # annotation classes: CDS (incl. pseudogene CDS) whose product name matches
 rows: dict[str, list[tuple[str, int, int, str]]] = defaultdict(list)
-for line in open(REF_GFF, encoding="utf-8"):
+for line in open(args.ref_gff, encoding="utf-8"):
     f = line.rstrip("\n").split("\t")
     if len(f) < 9 or f[2] != "CDS":
         continue
@@ -55,7 +59,7 @@ for cls in CLASSES:
 
 # self-repeats, as snippy-core --mask auto does
 subprocess.run(
-    f"minimap2 -D -P -w19 -m200 '{REF_FASTA}' '{REF_FASTA}' 2> /dev/null | cut -f 1,3,4 | sort -k1,1 -k2,2n"
+    f"minimap2 -D -P -w19 -m200 '{args.ref_fasta}' '{args.ref_fasta}' 2> /dev/null | cut -f 1,3,4 | sort -k1,1 -k2,2n"
     f" | bedtools slop -i stdin -g '{genome}' -r 1 -l 0 | bedtools merge -i stdin > '{MASK_DIR / 'self_repeat.bed'}'",
     shell=True, check=True, executable="/bin/bash")
 beds = " ".join(f"'{MASK_DIR / (c + '.bed')}'" for c in [*CLASSES, "self_repeat"])

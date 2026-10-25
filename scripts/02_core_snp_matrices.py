@@ -11,7 +11,8 @@ import numpy.typing as npt
 import pandas as pd
 from pathlib import Path
 
-from common import MASK_BED, OUT, REF_CHR, SUBSETS, alignment_path
+from common import MASK_BED, OUTPUT, REF_CHR, SUBSETS, alignment_path
+from kansasii_paths import ASSEMBLIES
 
 
 def read_chr(path: Path) -> npt.NDArray[np.uint8]:
@@ -28,6 +29,7 @@ def read_chr(path: Path) -> npt.NDArray[np.uint8]:
 
 
 ap = argparse.ArgumentParser()
+ap.add_argument("--assemblies", type=Path, default=ASSEMBLIES, help="<sample>/5_typing/kansasii_snippy/ per sample")
 ap.add_argument("--no-mask", action="store_true", help="do not exclude the mask BED regions from the core")
 args = ap.parse_args()
 
@@ -43,11 +45,11 @@ def load_mask(length: int) -> npt.NDArray[np.bool_]:
 
 
 summary: list[dict[str, object]] = []
-s = pd.read_csv(OUT / "samples_used.tsv", sep="\t", dtype={"subsets": str}, keep_default_na=False)
+s = pd.read_csv(OUTPUT / "samples_used.tsv", sep="\t", dtype={"subsets": str}, keep_default_na=False)
 acgt = np.frombuffer(b"ACGT", dtype=np.uint8)
 for name in SUBSETS:
     names = s[s.subsets.str.split(",").apply(lambda x: name in x)]["sample"].tolist()
-    A = np.stack([read_chr(alignment_path(n)) for n in names])
+    A = np.stack([read_chr(alignment_path(n, args.assemblies)) for n in names])
     core_all = np.isin(A, acgt).all(axis=0)
     var_all = int((A[:, core_all] != A[0, core_all]).any(axis=0).sum())
     masked = np.zeros(A.shape[1], dtype=bool) if args.no_mask else load_mask(A.shape[1])
@@ -60,6 +62,6 @@ for name in SUBSETS:
     summary.append({"subset": name, "genomes": len(names), "masked_bp": int(masked.sum()), "core_sites_unmasked": int(core_all.sum()),
                     "variable_unmasked": var_all, "core_sites": int(core.sum()), "variable": V.shape[1]})
     D = np.array([(V != V[i]).sum(axis=1) for i in range(len(names))])
-    pd.DataFrame(D, index=names, columns=names).to_csv(OUT / f"core_snp_distance_{name}.csv")
-    pd.DataFrame({"pos": np.flatnonzero(core)[var] + 1}).to_csv(OUT / f"core_snp_sites_{name}.csv", index=False)
-pd.DataFrame(summary).to_csv(OUT / "core_snp_summary.tsv", sep="\t", index=False)
+    pd.DataFrame(D, index=names, columns=names).to_csv(OUTPUT / f"core_snp_distance_{name}.csv")
+    pd.DataFrame({"pos": np.flatnonzero(core)[var] + 1}).to_csv(OUTPUT / f"core_snp_sites_{name}.csv", index=False)
+pd.DataFrame(summary).to_csv(OUTPUT / "core_snp_summary.tsv", sep="\t", index=False)
