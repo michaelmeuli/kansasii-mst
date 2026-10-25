@@ -4,7 +4,7 @@ Minimum spanning tree (MST) figures from core-genome SNPs, for four sample sets:
 the whole *M. kansasii* complex, *M. kansasii* sensu stricto, *M. pseudokansasii* and *M. persicum*.
 
 ```bash
-sbatch run_all.sbatch      # scripts/00 .. 03, about 2 minutes (outputs: $KANSASII_ROOT/output/mst/)
+sbatch submit_all.sbatch   # scripts/00 .. 03, about 2 minutes (outputs: output/mst/)
 ```
 
 | Script | Does |
@@ -40,6 +40,17 @@ Masked on the reference GCF_000157895.3: PE/PPE genes 254 CDS (384 kb), IS/trans
 chromosome). Effect on variable core sites: complex 260,020 -> 254,643, kansasii 222,680 -> 210,259, pseudokansasii 373 -> 338,
 persicum 31,630 -> 29,826 (`output/mst/core_snp_summary.tsv`). Node-merge thresholds were re-checked and kept.
 Phage regions are annotation-based (no PHASTER/PhiSpy available), so unannotated prophage is not masked.
+
+## Layout
+
+```
+scripts/          00_build_mask_bed.py ... 03_mst_figures.py, common.py; kansasii_paths.py = shared constants (vendored)
+submit_all.sbatch runs 00-03 in order (log in output/mst/logs/)
+```
+
+Paths come from `scripts/kansasii_paths.py` (same names in every repo: `ASSEMBLIES`, `ATCC12478_FASTA`, `SCREENING_MAP_RESULTS`, `OUTPUT_ROOT`) and are
+flags of the scripts: `--assemblies`, `--screening-map-results` (01), `--ref-fasta`, `--ref-gff` (00). Edit
+`kansasii-docs/templates/kansasii_paths.py`, not the copy (`bash repos/check_sync.sh --fix`).
 
 ## Provenance
 
