@@ -1,5 +1,7 @@
 # kansasii-mst
 
+> **OBSOLETE (2026-10-30).** Superseded by Ridom SeqSphere+ (cgMLST allele MST) as the source of truth; not used for the final report. Gaps (SNP distances, masking) and the export list: `kansasii-docs/docs/RIDOM.md`. Kept for comparison only; do not extend.
+
 Minimum spanning tree (MST) figures from core-genome SNPs, for four sample sets:
 the whole *M. kansasii* complex, *M. kansasii* sensu stricto, *M. pseudokansasii* and *M. persicum*.
 
