@@ -1,4 +1,4 @@
-"""Apply the QC exclusions and write the list of samples per MST subset to output/mst/samples_used.tsv."""
+"""Apply the QC exclusions and write the list of samples per MST subset to output/kansasii-mst/results/samples_used.tsv."""
 from __future__ import annotations
 
 import argparse

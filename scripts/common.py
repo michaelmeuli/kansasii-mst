@@ -5,9 +5,9 @@ from pathlib import Path
 
 import pandas as pd
 
-from kansasii_paths import ASSEMBLIES, COMPLEX, OUTPUT_ROOT, SCREENING_MAP_RESULTS
+from kansasii_paths import ASSEMBLIES, COMPLEX, OUT_MST, SCREENING_MAP_RESULTS
 
-OUTPUT = OUTPUT_ROOT / "mst"
+OUTPUT = OUT_MST / "results"
 MASK_DIR = OUTPUT / "mask"
 MASK_BED = MASK_DIR / "mask.bed"  # PE/PPE + IS + phage + self-repeats, merged (00_build_mask_bed.py)
 SNIPPY_BIN = Path.home() / "data/conda/envs/snippy/bin"  # bedtools, minimap2

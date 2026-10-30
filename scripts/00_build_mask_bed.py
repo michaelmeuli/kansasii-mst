@@ -1,7 +1,7 @@
 """BED mask of regions that give false SNPs when reads are mapped: PE/PPE genes, insertion sequences, phage/integrase genes
 (from the reference GFF3 product names) and self-repeats (the recipe of `snippy-core --mask auto`: minimap2 self-alignment).
 Snippy itself has no --mask; snippy-core does, with the same BED semantics (0-based start, end exclusive). The mask is applied
-in 02_core_snp_matrices.py. Output: output/mst/mask/{pe_ppe,is,phage,self_repeat,mask}.bed"""
+in 02_core_snp_matrices.py. Output: output/kansasii-mst/results/mask/{pe_ppe,is,phage,self_repeat,mask}.bed"""
 from __future__ import annotations
 
 import argparse

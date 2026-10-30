@@ -2,17 +2,17 @@
 # Core-SNP minimum spanning tree figures: scripts/00 .. 03 in numeric order (00 builds the PE/PPE+IS+phage+repeat mask BED).
 #   sbatch submit_all.sbatch
 # Inputs : data/imm/screening_map_results.csv, runs/mkan329/assembly/results/*/5_typing/kansasii_snippy
-# Outputs: output/mst/
+# Outputs: output/kansasii-mst/results/
 #SBATCH --job-name=kansasii-mst
 #SBATCH --cpus-per-task=2
 #SBATCH --mem=16G
 #SBATCH --time=02:00:00
-#SBATCH --output=/shares/sander.imm.uzh/MM/kansasii/output/mst/logs/%x-%j.log
+#SBATCH --output=/shares/sander.imm.uzh/MM/kansasii/output/kansasii-mst/logs/%x-%j.log
 
 set -euo pipefail
 source "${KANSASII_ROOT:-/shares/sander.imm.uzh/MM/kansasii}/repos/kansasii-docs/templates/kansasii_paths.sh"
 REPO=$REPOS/kansasii-mst
-OUTPUT=$OUTPUT_ROOT/mst
+OUTPUT=$OUT_MST/results
 source "$(conda info --base)/etc/profile.d/conda.sh"
 conda activate env_mst
 cd "$REPO"
