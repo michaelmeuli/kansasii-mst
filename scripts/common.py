@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from kansasii_paths import ASSEMBLIES, COMPLEX, OUT_MST, SCREENING_MAP_RESULTS
+from kansasii_paths import ASSEMBLIES, COHORT_SPECIES, OUT_MST, SCREENING_MAP_RESULTS
 
 OUTPUT = OUT_MST / "results"
 MASK_DIR = OUTPUT / "mask"
@@ -34,7 +34,7 @@ def load_samples(results: Path = SCREENING_MAP_RESULTS) -> pd.DataFrame:
     m = pd.read_csv(results, dtype={"excluded": str},
                     usecols=["NR", "PROBENNUMMER", "LABEL", "species", "contamination_flag", "excluded"])
     reason = pd.Series("", index=m.index)
-    reason[~m.species.isin(COMPLEX)] = "not in complex"
+    reason[~m.species.isin(COHORT_SPECIES)] = "not in complex"
     reason[m.LABEL.notna() & (reason == "")] = "control strain"
     reason[(m.contamination_flag == "contaminated") & (reason == "")] = "contaminated"
     # `excluded` = contaminated or < 90 % of the cgMLST loci called (immensekansasii 06)
