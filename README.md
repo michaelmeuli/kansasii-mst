@@ -29,7 +29,7 @@ Identical genomes are collapsed into one node (area = genome count); edge labels
 Nodes are labelled with the sample number only (`Mkan329-001` -> `1`; up to 8 per node, then `+k more`). Node area depends only on the number of genomes in the node (never on edges) and grows as its square root, so big nodes stay moderate; a size legend shows the scale. Nodes of 4+ genomes have a framed list box joined to the node by a leader line. `output/kansasii-mst/results/mst_nodes_<subset>.tsv` lists every sample per node (full ids and numbers).
 
 **Node merging:** MST edges of at most N SNPs are contracted (single linkage), so crowded centres become fewer, larger
-nodes (area = genome count, label shows `(n=...)`). Defaults in `scripts/common.py` (`MERGE_SNPS`): complex 1000 (coarse on purpose: the complex figure is for the overview; 172 genomes -> 75 nodes, persicum collapses to a few nodes), kansasii 50, kansasii 50,
+nodes (area = genome count, label shows `(n=...)`). Defaults in `scripts/common.py` (`MERGE_SNPS`): complex 1000 (coarse on purpose: the complex figure is for the overview; 171 genomes -> 78 nodes, persicum collapses to a few nodes), kansasii 50, kansasii 50,
 pseudokansasii 20, persicum 100, chosen where the many short MST edges end (e.g. kansasii 117 haplotypes -> 74 nodes at 50).
 Override with `python scripts/03_mst_figures.py --merge N` (`--merge 0` = identical genomes only). `mst_nodes_<subset>.tsv`
 has `max_internal_snps`, the largest pairwise distance inside each node (single linkage can chain).
@@ -39,8 +39,8 @@ applied when the core is built (`02_core_snp_matrices.py`, same semantics as `sn
 Masked on the reference GCF_000157895.3: PE/PPE genes 254 CDS (384 kb), IS/transposase 70 (56 kb), phage/integrase 40 (38 kb;
 "phage shock" and "phage resistance" genes are not prophage and excluded) and self-repeats from a minimap2 self-alignment, the
 `snippy-core --mask auto` recipe (111 regions, 351 kb); merged 375 regions, 695 kb = 10.6% of the reference (673 kb on the
-chromosome). Effect on variable core sites: complex 260,020 -> 254,643, kansasii 222,680 -> 210,259, pseudokansasii 373 -> 338,
-persicum 31,630 -> 29,826 (`output/kansasii-mst/results/core_snp_summary.tsv`). Node-merge thresholds were re-checked and kept.
+chromosome). Effect on variable core sites: complex 287,459 -> 281,619, kansasii 222,680 -> 210,259, pseudokansasii 373 -> 338,
+persicum 37,535 -> 35,445 (`output/kansasii-mst/results/core_snp_summary.tsv`). Node-merge thresholds were re-checked and kept.
 Phage regions are annotation-based (no PHASTER/PhiSpy available), so unannotated prophage is not masked.
 
 ## Layout
